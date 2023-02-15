@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Mandelbrot Set</title>
+	<link rel="icon" type="image/x-icon" href="favicon.ico">
+	<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="MandelbrotAppContainer">
+	<div id="divMandelbrot" >
+		<canvas id="canvas" style="touch-action: none;"></canvas>
+	</div>
+	<div id="divSidebar" >
+	
+		<div class="title-box" >
+			<h1 style="margin-top: 5px; text-align: center;">Mandelbrot Set</h1>
+		</div>
+		<div class="ui-box" id="divSettings" >
+			<div class="ui-box-header">
+				<h2>Settings</h2>
+			</div>
+			<div class="ui-box-body collapsible collapsible">
+				<div class="settings-row">
+					<label for="tbGrowthThreshold">Growth Threshold: </label>
+					<input type="number" id="tbGrowthThreshold" name="tbGrowthThreshold" class="number-input" onchange="UpdateSettingsFromUi();" >
+				</div>
+				<div class="settings-row">
+					<label for="tbIterationThreshold">Iteration Threshold: </label>
+					<input type="number" id="tbIterationThreshold" name="tbIterationThreshold" class="number-input" onchange="UpdateSettingsFromUi();" >
+				</div>
+				
+				<div class="settings-row">
+					<label for="ddlZoomSelectionMode"> Zoom Mode: </label>
+					<select name="ddlZoomSelectionMode" id="ddlZoomSelectionMode"  onchange="UpdateSettingsFromUi();">
+						<option value="CORNER">Corner</option>
+						<option value="CENTER">Center</option>
+					</select>
+				</div>
+				
+				<div id="divAdvancedSettingsHeader" style="display: inline-block;">
+					<a href="#" style="font-size: 12px;">Show Advanced Settings</a>
+				</div>
+				<div id="divAdvancedSettingsBody" class="collapsible collapsed">
+					<div class="settings-row">
+						<label for="tbZPower">Z Power: </label>
+						<input type="number" id="tbZPower" name="tbZPower" class="number-input" onchange="UpdateSettingsFromUi();" >
+					</div>
+					<div class="settings-row">
+						<label for="tbRenderingThreads">Rendering Threads: </label>
+						<input type="number" id="tbRenderingThreads" name="tbRenderingThreads" class="number-input" onchange="UpdateSettingsFromUi();" >
+					</div>
+					<div class="settings-row">
+						<label for="cbShowPartialLoading">Show Partial Loading: </label>
+						<input type="checkbox" id="cbShowPartialLoading" name="cbShowPartialLoading" onchange="UpdateSettingsFromUi();" >
+					</div>
+					<div class="settings-row">
+						<label for="chDisplayAxes">Show Axes: </label>
+						<input type="checkbox" id="chDisplayAxes" name="chDisplayAxes" onchange="UpdateSettingsFromUiUpdateImageData();" >
+					</div>
+					<div class="settings-row">
+						<br />
+					</div>
+				</div>
+				
+				
+				<div class="settings-row">
+					<label for="ddlColorMode"> Color Mode: </label>
+					<select name="ddlColorMode" id="ddlColorMode"  onchange="ShowHideColorSections(); UpdateSettingsFromUiUpdateImageData();">
+						<option value="BLACK_WHITE">Black & White</option>
+						<option value="SINGLE_COLOR">Color</option>
+						<option value="REVERSE_SINGLE_COLOR">Reverse Color</option>
+						<option value="COLOR_CYCLE">Color Cycle</option>
+					</select>
+				</div>
+				
+				<div class="settings-row" id="divPrimaryColor">
+					<label for="ddlPrimaryColor"> Color: </label>
+					<select name="ddlPrimaryColor" id="ddlPrimaryColor"  onchange="UpdateSettingsFromUiUpdateImageData();">
+						<option value="red">Red</option>
+						<option value="green">Green</option>
+						<option value="blue">Blue</option>
+						<option value="cyan">Cyan</option>
+						<option value="magenta">Magenta</option>
+						<option value="yellow">Yellow</option>
+					</select>
+				</div>
+				<div id="divColorCycle">
+					<div class="settings-row">
+						<label for="ddlColorCycleOrdering"> Color: </label>
+						<select name="ddlColorCycleOrdering" id="ddlColorCycleOrdering"  onchange="UpdateSettingsFromUiUpdateImageData();">
+							<option value="red,green,blue">Red-Green-Blue</option>
+							<option value="red,blue,green">Red-Blue-Green</option>
+							<option value="green,blue,red">Green-Blue-Red</option>
+							<option value="green,red,blue">Green-Red-Blue</option>
+							<option value="blue,red,green">Blue-Red-Green</option>
+							<option value="blue,green,red">Blue-Green-Red</option>
+						</select>
+					</div>
+					<div class="settings-row">
+						<label for="tbColorCycleCycleCount">Cycle Count: </label>
+						<input type="number" id="tbColorCycleCycleCount" name="tbColorCycleCycleCount" class="number-input" onchange="UpdateSettingsFromUiUpdateImageData();" >
+					</div>
+						
+				</div>
+				<br />
+				<div class="settings-row">
+					<button id="btnRender" name="btnRender" onclick="ReRender()" style="width: 100px; height: 30px;">Render</button>
+					<button onclick="RestoreDefaultValuesAndRedraw()" style="width: 120px; height: 30px;">Restore Defaults</button>
+				</div>
+			</div>
+		</div>
+		<div class="ui-box"  id="divNavigation" >
+			<div class="ui-box-header">
+				<h2>Navigation</h2>
+			</div>
+			<div class="ui-box-body collapsible">
+				<div class="settings-row">
+					<span style="font-style: italic;">(Click and drag to zoom in)</span><br />
+					<span style="font-style: italic;">(C + click to center)</span>
+				
+				</div>
+				<div class="settings-row">
+					<label for="tbZoomLevel">Zoom Magnifier: </label>
+					<input type="number" id="tbZoomLevel" name="tbZoomLevel" class="number-input" onchange="UpdateSettingsFromUi();" >
+				</div>
+				<div class="settings-row">
+					<button id="btnZoomIn" name="btnZoomIn" onclick="ZoomIn()" style="width: 100px; height: 30px;">Zoom In</button>
+					<button id="btnZoomOut" name="btnZoomOut" onclick="ZoomOut()" style="width: 100px; height: 30px;">Zoom Out</button>
+				</div>
+				<div class="settings-row">
+					<button id="btnBack" name="btnBack" onclick="ZoomOutToHistory()" style="width: 100px; height: 30px;">Back</button>
+					<button id="btnBackToTop" name="btnBackToTop" onclick="ZoomOutToDefault()" style="width: 100px; height: 30px;">Back To Top</button>
+				</div>
+			</div>
+		</div>
+		<div class="ui-box" id="divPosition">
+			<div class="ui-box-header">
+				<h2>Position</h2>
+			</div>
+			<div class="ui-box-body collapsible">
+				<div class="settings-row"><label>Center X:</label><span id="lblX" /></div>
+				<div class="settings-row"><label>Center Y:</label><span id="lblY" /></div>
+				<div class="settings-row"><label>Left Edge:</label><span id="lblLeftEdge" /></div>
+				<div class="settings-row"><label>Right Edge:</label><span id="lblRightEdge" /></div>
+				<div class="settings-row"><label>Top Edge:</label><span id="lblTopEdge" /></div>
+				<div class="settings-row"><label>Bottom Edge:</label><span id="lblBottomEdge" /></div>
+				<div class="settings-row"><label>Scale:</label><span id="lblScale" /></div>
+			</div>
+		</div>
+		<div class="ui-box" id="divPointStats">
+			<div class="ui-box-header">
+				<h2>Point Stats</h2>
+			</div>
+			
+			<div class="ui-box-body collapsible">
+			
+				<div class="settings-row">
+					<label for="cbBuildPointStats" style="margin-right: 0px;">Build Point Stats: </label>
+					<input type="checkbox" id="cbBuildPointStats" name="cbBuildPointStats" onchange="UpdateSettingsFromUi();ReRender();" >
+				</div>
+				
+				<!--<div class="settings-row"><label>Point:</label><span id="lblPointStatsPoint" /></div>-->
+				<div class="settings-row"><label>Real:</label><span id="lblPointStatsReal" /></div>
+				<div class="settings-row"><label>Imaginary:</label><span id="lblPointStatsImaginary" /></div>
+				<div class="settings-row"><label>Escape Rate:</label><span id="lblPointStatsEscapeRate" /></div>
+				<div class="settings-row"><label>Iteration Count:</label><span id="lblPointStatsIterationCount" /></div>
+				<div class="settings-row">
+					<label>Iteration History</label>
+					<div id="divIterationHistory">
+					
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--
+		<div class="ui-box" id="divSavedHistory">
+			<div class="ui-box-header">
+				<h2>Saved History</h2>
+			</div>
+			<div class="ui-box-body collapsible">
+				
+				
+				<div class="settings-row">
+					<input type="text" id="tbSavedHistoryName" name="tbSavedHistoryName" class="" >
+					<button id="btnSave" name="btnSave" onclick="" style="width: 100px; height: 30px;">Save</button>
+				</div>
+				
+				
+			</div>
+		</div>
+		-->
+	</div>
+</div>
+
+<script>
+	let coll = document.getElementsByClassName("ui-box-header");
+	
+	var collapsedControls = new Set();
+	if (localStorage.getItem("collapsedControls") != null) collapsedControls = new Set(JSON.parse(localStorage.collapsedControls));
+	
+	
+	for (let i = 0; i < coll.length; i++) {
+		coll[i].classList.add("expanded-header");
+		
+		if(collapsedControls.has(coll[i].parentNode.id)) {
+			//console.log("<divCollapse> collapsing control");
+			//console.log(coll[i].parentNode.id);
+			coll[i].classList.toggle("expanded-header");
+			coll[i].classList.toggle("collapsed-header");
+			coll[i].nextElementSibling.classList.toggle("collapsed");
+		}
+		
+		coll[i].addEventListener("click", function() {
+			this.classList.toggle("expanded-header");
+			this.classList.toggle("collapsed-header");
+			let content = this.nextElementSibling;
+			content.classList.toggle("collapsed");
+			
+			//console.log("<divCollapse> toggling div collapse for: " + this.parentNode.id);
+			
+			if(collapsedControls.has(this.parentNode.id)) {
+				//console.log("<divCollapse> div was in set. removing id: " + this.parentNode.id);
+				collapsedControls.delete(this.parentNode.id);
+			} else {
+				//console.log("<divCollapse> div was not in set. adding id: " + this.parentNode.id);
+				collapsedControls.add(this.parentNode.id);
+			}
+			localStorage.setItem('collapsedControls', JSON.stringify([...collapsedControls]));
+		});
+	}
+</script>
+
+<script>
+
+
+
+let divAdvancedSettingsHeader = document.getElementById("divAdvancedSettingsHeader");
+divAdvancedSettingsHeader.addEventListener("click", function() {
+			//this.classList.toggle("expanded-header");
+			//this.classList.toggle("collapsed-header");
+			let content = this.nextElementSibling;
+			content.classList.toggle("collapsed");
+			
+			let label = this.firstElementChild;
+			if(label.innerHTML.includes("Show")) {
+				label.innerHTML = "Hide Advanced Settings";
+			} else {
+				label.innerHTML = "Show Advanced Settings";
+			}
+		});
+
+
+</script>
+
+<script src="classes.js"></script>
+<script src="mandelbrotSet.js"></script>
+
+
+</body>
+</html>

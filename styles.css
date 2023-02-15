@@ -1,0 +1,130 @@
+
+
+body {
+	margin: 0px;
+}
+
+
+#divMandelbrot {
+	margin: 0px;
+	padding: 0px;
+	float: left;
+}
+
+#canvas {
+	margin: 0px;
+	padding: 0px;
+	//border: 1px solid black;
+}
+
+#divSidebar {
+	
+	height: 100%;
+	width: 300px;
+	position: fixed;
+	z-index: 1;
+	top: 0;
+	right: 0;
+	overflow-x: hidden;
+	overflow-y:auto
+	background-color: white;
+	
+	padding: 2px;
+	border-left: 5px solid #aaa;
+	//border-left: 10px solid linear-gradient(to right, red , yellow);
+}
+
+
+.title-box {
+	border: 1px solid black;
+	padding: 10px;
+	margin-bottom: 5px;
+}
+
+.title-box h1 {
+	margin-bottom: 10px;
+}
+
+.ui-box {
+	border: 1px solid black;
+	padding: 0px;
+	margin-bottom: 5px;
+}
+
+.ui-box-header {
+	background-color: #aaa;
+	padding-left: 10px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	
+	cursor: pointer;
+}
+
+
+.ui-box-header:hover {
+  background-color: #ccc;
+}
+
+.ui-box-header h2 {
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+.ui-box-header h2::after {
+	font-size: 13px;
+	color: white;
+	float: right;
+	margin-left: 5px;
+}
+
+.expanded-header h2::after {
+	content: "\2796"; /* "plus" sign (-) */
+
+}
+
+.collapsed-header h2::after {
+	content: '\02795'; /* "plus" sign (+) */
+}
+
+.ui-box-body {
+	padding-left: 10px;
+	padding-right: 10px;
+	
+	/* overflow: hidden; */
+	
+	/* max-height: 100vh; */
+	/* transition: all ease-out 0.5s; */
+	/* transition-delay: 0s; */
+}
+
+.collapsible {
+	
+	overflow: hidden;
+	
+	max-height: 100vh;
+	transition: all ease-out 0.5s;
+	transition-delay: 0s;
+	
+}
+
+.collapsed {
+	max-height: 0;
+}
+
+.settings-row {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+
+.number-input {
+	width: 70px;
+}
+
+#divPosition label {
+	margin-right: 10px;
+}
+
+#divPointStats label {
+	margin-right: 10px;
+}
