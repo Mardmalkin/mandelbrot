@@ -24,7 +24,7 @@ var BoxAspectRatio = BoxWidth / BoxHeight;
 var AllowBoxResizing = false;
 var ResizeSelectionWidth = 10;
 var BorderColor = "red";
-var DisplayBorder = true;
+var DisplayBorder = false;
 
 var DisplayAxes = false;
 var OriginX = 0;
@@ -1616,7 +1616,7 @@ RestoreDefaultValuesAndRedraw = function() {
 	ShowHideColorSections();
 	StoreSettingsInUrl();
 	StorePlaneInUrl();
-	//localStorage.clear();
+	localStorage.clear();
 	UpdatePlane = true;
 	UpdateCanvas = true;
 }

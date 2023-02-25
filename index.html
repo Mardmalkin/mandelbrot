@@ -136,7 +136,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="ui-box"  id="divNavigation" >
+		<div class="ui-box" id="divNavigation" >
 			<div class="ui-box-header">
 				<h2>Navigation</h2>
 			</div>
@@ -161,10 +161,10 @@
 			</div>
 		</div>
 		<div class="ui-box" id="divPosition">
-			<div class="ui-box-header">
+			<div class="ui-box-header collapsed-header">
 				<h2>Position</h2>
 			</div>
-			<div class="ui-box-body collapsible">
+			<div class="ui-box-body collapsible collapsed">
 				<div class="settings-row"><label>Center X:</label><span id="lblX" /></div>
 				<div class="settings-row"><label>Center Y:</label><span id="lblY" /></div>
 				<div class="settings-row"><label>Left Edge:</label><span id="lblLeftEdge" /></div>
@@ -175,11 +175,11 @@
 			</div>
 		</div>
 		<div class="ui-box" id="divPointStats">
-			<div class="ui-box-header">
+			<div class="ui-box-header collapsed-header">
 				<h2>Point Stats</h2>
 			</div>
 			
-			<div class="ui-box-body collapsible">
+			<div class="ui-box-body collapsible collapsed">
 			
 				<div class="settings-row">
 					<label for="cbBuildPointStats" style="margin-right: 0px;">Build Point Stats: </label>
@@ -191,31 +191,14 @@
 				<div class="settings-row"><label>Imaginary:</label><span id="lblPointStatsImaginary" /></div>
 				<div class="settings-row"><label>Escape Rate:</label><span id="lblPointStatsEscapeRate" /></div>
 				<div class="settings-row"><label>Iteration Count:</label><span id="lblPointStatsIterationCount" /></div>
-				<div class="settings-row">
-					<label>Iteration History</label>
-					<div id="divIterationHistory">
+				<!-- <div class="settings-row"> -->
+					<!-- <label>Iteration History</label> -->
+					<!-- <div id="divIterationHistory"> -->
 					
-					</div>
-				</div>
+					<!-- </div> -->
+				<!-- </div> -->
 			</div>
 		</div>
-		<!--
-		<div class="ui-box" id="divSavedHistory">
-			<div class="ui-box-header">
-				<h2>Saved History</h2>
-			</div>
-			<div class="ui-box-body collapsible">
-				
-				
-				<div class="settings-row">
-					<input type="text" id="tbSavedHistoryName" name="tbSavedHistoryName" class="" >
-					<button id="btnSave" name="btnSave" onclick="" style="width: 100px; height: 30px;">Save</button>
-				</div>
-				
-				
-			</div>
-		</div>
-		-->
 	</div>
 </div>
 
@@ -223,19 +206,19 @@
 	/******* Handle ui-box box collapse/expand *********/
 	let coll = document.getElementsByClassName("ui-box-header");
 	
-	var collapsedControls = new Set();
+	//If you're changing which boxes default to open/collapsed, you also need to add/remove the classes from the divs directly
+	var collapsedControls = new Set(['divPosition', 'divPointStats']);
 	if (localStorage.getItem("collapsedControls") != null) collapsedControls = new Set(JSON.parse(localStorage.collapsedControls));
 	
 	
 	for (let i = 0; i < coll.length; i++) {
-		coll[i].classList.add("expanded-header");
 		
 		if(collapsedControls.has(coll[i].parentNode.id)) {
-			//console.log("<divCollapse> collapsing control");
-			//console.log(coll[i].parentNode.id);
-			coll[i].classList.toggle("expanded-header");
-			coll[i].classList.toggle("collapsed-header");
-			coll[i].nextElementSibling.classList.toggle("collapsed");
+			coll[i].classList.add("collapsed-header");
+			coll[i].nextElementSibling.classList.add("collapsed");
+			
+		} else {
+			coll[i].classList.add("expanded-header");
 		}
 		
 		coll[i].addEventListener("click", function() {
@@ -244,13 +227,9 @@
 			let content = this.nextElementSibling;
 			content.classList.toggle("collapsed");
 			
-			//console.log("<divCollapse> toggling div collapse for: " + this.parentNode.id);
-			
 			if(collapsedControls.has(this.parentNode.id)) {
-				//console.log("<divCollapse> div was in set. removing id: " + this.parentNode.id);
 				collapsedControls.delete(this.parentNode.id);
 			} else {
-				//console.log("<divCollapse> div was not in set. adding id: " + this.parentNode.id);
 				collapsedControls.add(this.parentNode.id);
 			}
 			localStorage.setItem('collapsedControls', JSON.stringify([...collapsedControls]));
