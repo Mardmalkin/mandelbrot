@@ -160,7 +160,7 @@ var Color = {
 }
 
 var DefaultColorMode = ColorType.ReverseSingleColor;
-var DefaultPrimaryColor = Color.Green;
+var DefaultPrimaryColor = Color.Cyan;
 var DefaultColorCycleCycleCount = 2;
 var DefaultColorCycleOrdering = [Color.Red, Color.Green, Color.Blue];
 
@@ -206,6 +206,8 @@ var lblPointStatsEscapeRate = document.getElementById("lblPointStatsEscapeRate")
 var lblPointStatsIterationCount = document.getElementById("lblPointStatsIterationCount");
 var divIterationHistory = document.getElementById("divIterationHistory");
 
+var divWelcomeModal = document.getElementById("divWelcomeModal");
+var divWelcomeModalBackground = document.getElementById("divWelcomeModalBackground");
 
 
 window.addEventListener('resize', function(event){
@@ -1147,7 +1149,7 @@ document.onkeyup= function(event){
 };
 
 
-document.onmousedown = function(mouse) {
+canvas.onmousedown = function(mouse) {
 	console.log("<onmousedown>");
 	IsMouseDown = true;
 	let mouseX = mouse.clientX - canvas.getBoundingClientRect().left;
@@ -1168,7 +1170,7 @@ document.onmousedown = function(mouse) {
 
 }
 
-document.onmouseup = function(mouse) {
+canvas.onmouseup = function(mouse) {
 	IsMouseDown = false;
 	console.log("<onmouseup> ");
 
@@ -1199,7 +1201,7 @@ document.onmouseup = function(mouse) {
 
 }
 
-document.onmousemove = function(mouse) {
+canvas.onmousemove = function(mouse) {
 	console.log("<onmousemove>Start");
 
 	var mouseX = mouse.clientX - canvas.getBoundingClientRect().left;
@@ -1332,12 +1334,11 @@ canvas.ontouchstart = function(event) {
 		clientY: touchY,
 		button: 0
 	});
-	document.dispatchEvent(mouseEvent);
+	canvas.dispatchEvent(mouseEvent);
 }
 
 
 canvas.ontouchend = function(event) {
-	
 	if (event.target == canvas) {
 		event.preventDefault();
 	}
@@ -1346,11 +1347,10 @@ canvas.ontouchend = function(event) {
 	var mouseEvent = new MouseEvent("mouseup", {
 		button: 0
 	});
-	document.dispatchEvent(mouseEvent);
+	canvas.dispatchEvent(mouseEvent);
 }
 
 canvas.ontouchmove = function(event) {
-	
 	if (event.target == canvas) {
 		event.preventDefault();
 	}
@@ -1364,11 +1364,22 @@ canvas.ontouchmove = function(event) {
 		clientY: touchY,
 		button: 0
 	});
-	document.dispatchEvent(mouseEvent);
+	canvas.dispatchEvent(mouseEvent);
 }
 
 
+/**** Modal stuff ****/
 
+divWelcomeModalBackground.onmouseup = function(mouse) {
+	ToggleHelpModal()
+}
+
+divWelcomeModalBackground.ontouchend = function(event) {
+	ToggleHelpModal()
+}
+
+
+/**** Browser Back Button ****/
 
 window.addEventListener('popstate', (event) => {
 	RetrieveSettingsFromUrl();
@@ -1747,6 +1758,16 @@ ShowHideColorSections = function() {
 	
 }
 
+
+ToggleHelpModal = function() {
+	
+	
+	divWelcomeModal.classList.toggle("ModalShow");
+	
+	divWelcomeModalBackground.classList.toggle("ModalBackgroundShow");
+	//divWelcomeModalBackground.style.display = "block";
+	
+}
 
 /****************** ARRAY FUNCTIONS ***********************/
 

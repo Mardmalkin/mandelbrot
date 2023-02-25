@@ -1,20 +1,6 @@
 
 
 
-class TestClass {
-	constructor (NewName) {
-		this.name = NewName;
-	}
-	sing () {
-		return `${this.name} can sing`;
-	}
-	dance () {
-		return `${this.name} can dance`;
-	}
-}
-
-
-
 class ComplexNumber
 {
 	
@@ -90,7 +76,7 @@ class ComplexNumber
 		return this.imaginary;
 	}
 	
-	//Used for determining whether or not the number has gone off to infinity
+	//Used for determining whether or not the number has passed the growth threshold
 	getValue() 
 	{
 		return Math.max(this.real, this.imaginary);

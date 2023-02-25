@@ -31,7 +31,7 @@ body {
 	
 	padding: 2px;
 	border-left: 5px solid #aaa;
-	//border-left: 10px solid linear-gradient(to right, red , yellow);
+	/* border-left: 10px solid linear-gradient(to right, red , yellow); */
 }
 
 
@@ -78,7 +78,7 @@ body {
 }
 
 .expanded-header h2::after {
-	content: "\2796"; /* "plus" sign (-) */
+	content: "\2796"; /* "minus" sign (-) */
 
 }
 
@@ -128,3 +128,92 @@ body {
 #divPointStats label {
 	margin-right: 10px;
 }
+
+
+.linkButton {
+	background: none!important;
+	border: none;
+	padding: 0!important;
+	font-family: arial, sans-serif;
+	color: #069;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+/******** Welcome Modal ***********/
+
+#divWelcomeModalBackground {
+	display: none;
+	position: fixed;
+	z-index: 10;
+	padding: 0px;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+	background-color: #000000;
+	opacity: 0.5;
+}
+
+#divWelcomeModalBackground.ModalBackgroundShow {
+	display: block;
+}
+
+
+#divWelcomeModal {
+	display: none;
+	position: absolute;
+	left: 0;
+	right: 0;
+	margin: 0 auto;
+	z-index: 100;
+	
+	width: 500px;
+	background-color: #fff;
+	opacity: 1.0;
+	padding: 25px;
+	padding-top: 15px;
+	border: 5px solid #aaa;
+	border-radius: 25px;
+	
+	/* top: -700px; */
+	/* transition: all; */
+	/* transition-property: all; */
+	/* transition-duration: 1.9s; */
+	/* transition-timing-function: ease; */
+	/* transition-delay: 0s; */
+	
+}
+
+
+#divWelcomeModal.ModalShow {
+	display: block;
+	top: 150px;
+	
+}
+
+#divWelcomeModal li {
+	margin-bottom: 15px;
+}
+
+.close_icon::after {
+	
+	float: right;
+	font-size: 24px;
+	color: #aaa;
+	cursor: pointer;
+	
+	 content: '\2716'; /* ✖ */
+	/* content:  '\425'; Х (cyrillic ha) */
+	/* content: '\2169'; Ⅹ (Roman Numeral 10) */
+	/* content: '\2297'; ⊗ (circled diagonal cross) */
+	/* content: '\2573'; ╳ (light diagonal cross) */
+	/* content: '\2613'; ☓ */
+	/* content: '\2715'; ✕ */
+	/* content: '\2716'; ✖ */
+	/* content: '\2717'; ✗ */
+	/* content: '\2718'; ✘ */
+}
+
+
