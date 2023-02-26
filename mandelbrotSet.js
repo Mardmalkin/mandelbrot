@@ -1,19 +1,18 @@
 
-
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
 var ElementBottomMargin = 5;
 var ElementRightMargin = 1;
 var divSidebar = document.getElementById("divSidebar");
-//divSidebar.style.height = window.innerHeight-ElementBottomMargin + "px";
 
 var DefaultCanvasWidth = window.innerWidth - divSidebar.offsetWidth-ElementRightMargin;
 var DefaultCanvasHeight = window.innerHeight-ElementBottomMargin;
 
+var CurrentOrientation = window.orientation;
+
 var EnableStateInUrl = true;
 
-//Values set in UpdateCanvasSize() and UpdateCellSize()
 var BoxMargin = 0;
 var BoxX = BoxMargin;
 var BoxY = BoxMargin;
@@ -43,16 +42,19 @@ var ModifierKeys = {
 }
 
 var DefaultZoomSelectionMode = "CORNER"
-//var DefaultZoomSelectionMode = "CENTER"
+//If using a mobile device, default to CENTER
+if (navigator.userAgent.match(/Mobi/)) {
+	DefaultZoomSelectionMode = "CENTER"
+}
+
 var ZoomSelectionMode = DefaultZoomSelectionMode;
 var ZoomSelectionX = 0;
 var ZoomSelectionY = 0;
 var ZoomSelectionWidth = 0;
 var ZoomSelectionHeight = 0;
-var ZoomSelectionColor = 'rgba(0, 255, 0, 1)';
 var ZoomSelectionBorderColor    = 'rgba(255, 0, 0, 1)';
 var ZoomSelectionCrosshairColor = 'rgba(255, 0, 0, 1)';
-var ZoomSelectionBackgroundColor = 'rgba(255, 255, 255, 0.0)';
+var ZoomSelectionBackgroundColor = 'rgba(255, 255, 255, 0.3)';
 var ZoomSelectionThreshold = 30;
 var zoomCrosshairWidth = 10;
 
@@ -145,8 +147,8 @@ var UpdatePlane = false;
 
 var ColorType = {
 	BlackWhite: "BLACK_WHITE",
-	SingleColor: "SINGLE_COLOR",
-	ReverseSingleColor: "REVERSE_SINGLE_COLOR",
+	SingleColor: "COLOR",
+	ReverseColor: "REVERSE_COLOR",
 	ColorCycle: "COLOR_CYCLE",
 }
 
@@ -159,7 +161,7 @@ var Color = {
 	Yellow: 'yellow'
 }
 
-var DefaultColorMode = ColorType.ReverseSingleColor;
+var DefaultColorMode = ColorType.ReverseColor;
 var DefaultPrimaryColor = Color.Cyan;
 var DefaultColorCycleCycleCount = 2;
 var DefaultColorCycleOrdering = [Color.Red, Color.Green, Color.Blue];
@@ -206,19 +208,22 @@ var lblPointStatsEscapeRate = document.getElementById("lblPointStatsEscapeRate")
 var lblPointStatsIterationCount = document.getElementById("lblPointStatsIterationCount");
 var divIterationHistory = document.getElementById("divIterationHistory");
 
-var divWelcomeModal = document.getElementById("divWelcomeModal");
-var divWelcomeModalBackground = document.getElementById("divWelcomeModalBackground");
 
 
-window.addEventListener('resize', function(event){
-	
-	//divSidebar.style.height = window.innerHeight-ElementBottomMargin + "px";
+
+HandleResize = function() {
 	DefaultCanvasWidth = window.innerWidth - divSidebar.offsetWidth-ElementRightMargin;
 	DefaultCanvasHeight = window.innerHeight-ElementBottomMargin;
 	UpdateCanvasSize(DefaultCanvasWidth, DefaultCanvasHeight);
 	
-});
+	if(window.orientation !== CurrentOrientation){
+		CurrentOrientation = window.orientation;
+		ReRender()
+	}
+}
 
+window.addEventListener('resize', HandleResize);
+window.addEventListener('orientationchange', HandleResize);
 
 /****************** Drawing Stuff ***********************/
 
@@ -227,13 +232,7 @@ DrawCanvas = function () {
 	//console.log("<DrawCanvas> Start");
 	
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-
-	//ctx.fillText("Score: " + score, 200, 30);
-
-
 	ctx.save();
-	//ctx.transform(1,0,0,1,BoxX,BoxY);
 	
 	//DrawBorder
 	if(DisplayBorder) {
@@ -244,7 +243,6 @@ DrawCanvas = function () {
 		DrawLine(BoxX, BoxY + BoxHeight, BoxX + BoxWidth, BoxY + BoxHeight);
 	}
 	
-	
 	if(Plane.length > 0) {
 		if(UpdateImageData) {
 			UpdateImageData = false;
@@ -254,12 +252,10 @@ DrawCanvas = function () {
 		ctx.putImageData(PlaneImageData, BoxX, BoxY);
 	}
 	
-	
 	if (LoadPercent > 0 && LoadPercent < 1) {
 		//console.log("<DrawCanvas>LoadPercent: " + LoadPercent);
 		ctx.fillStyle = LoadingBarColor;
 		ctx.fillRect(BoxX, BoxY+BoxHeight-LoadingBarHeight, BoxWidth*LoadPercent, LoadingBarHeight);
-		
 		
 		if(LoadPercentArray.length > 1) {
 			//console.log(LoadPercentArray);
@@ -271,7 +267,6 @@ DrawCanvas = function () {
 		
 	}
 	
-	
 	if(DisplayAxes) {
 		if (OriginX > BoxX && OriginX < BoxX+BoxWidth) {
 			ctx.strokeStyle = AxesColor;
@@ -282,7 +277,6 @@ DrawCanvas = function () {
 			DrawLine(BoxX+1, OriginY, BoxX+BoxWidth-1, OriginY);
 		}
 	}
-	
 	
 	if(MouseMode == "ZOOM_SELECT") {
 		ctx.strokeStyle = ZoomSelectionBorderColor;
@@ -318,12 +312,10 @@ DrawCanvas = function () {
 			
 		}
 		
-		
 	}
 	
 	ctx.restore();
 	//console.log("<DrawCanvas> End");
-
 }
 
 
@@ -333,7 +325,6 @@ DrawLine = function(x1, y1, x2, y2) {
 	ctx.lineTo(x2, y2);
 	ctx.stroke();
 }
-
 
 
 PlaneToImageData = function(planeArray) {
@@ -354,65 +345,18 @@ PlaneToImageData = function(planeArray) {
 			data[base+1] = color.green;
 			data[base+2] = color.blue;
 			data[base+3] = color.alpha;
-			
-			/*
-			if(planeArray[col][row] > 0) {
-				let base = row * (imageData.width * 4) + col * 4
-				data[base] = color.red;
-				data[base+1] = color.green;
-				data[base+2] = color.blue;
-				data[base+3] = color.alpha;
-				pixelsColored++;
-			} else {
-				let base = row * (imageData.width * 4) + col * 4
-				data[base] = 0;
-				data[base+1] = 0;
-				data[base+2] = 0;
-				data[base+3] = 255;
-			}
-			*/
 		}
 	}
-	
-	//console.log("<PlaneToImageData> Pixels Colored: " + pixelsColored);
-	//console.log("<PlaneToImageData> end");
 	
 	return imageData;
 }
 
-/*
-DrawPlane = function() {
-	console.log("<DrawPlane> start");
-	ctx.fillStyle = "black";
-	
-	let pixelsColored = 0;
-	
-	for(let i=0;i<Math.min(Plane.length, BoxWidth);i++) {
-		for(let j=0;j<Math.min(Plane[0].length, BoxHeight);j++) {
-			if(Plane[i][j] == 0) {
-				ctx.fillRect(BoxX+i, BoxY+j, 1, 1);
-				pixelsColored++;
-			}
-		}
-	}
-	
-	console.log("<DrawPlane> Pixels Colored: " + pixelsColored);
-	console.log("<DrawPlane> end");
-	
-}
-*/
 
 
 /******************* Coloring **********************/
 
 
 PixelColorFromRate = function(rate) {
-	
-	//console.log("<PixelColorFromRate> rate: " + rate)
-	//console.log("<PixelColorFromRate> ColorMode: " + ColorMode)
-	
-	//console.log("<PixelColorFromRate> Color: " + Color)
-	//console.log("<PixelColorFromRate> ColorMode.BlackWhite: " + ColorMode.BlackWhite)
 	
 	let result = {red: 0, green: 0, blue: 0, alpha: 255}
 	switch (ColorMode) {
@@ -430,6 +374,7 @@ PixelColorFromRate = function(rate) {
 			break;
 		case ColorType.SingleColor:
 			if(rate > 0) {
+				
 				if(["red","green","blue"].includes(PrimaryColor)) {
 					result.blue = 255*rate;
 					result.red = 255*rate;
@@ -441,6 +386,29 @@ PixelColorFromRate = function(rate) {
 					result.green = 255;
 					result[cNameToProp(PrimaryColor)] = 255*rate;
 				}
+				
+				/*
+				let colorAmount = 510*(rate);
+				
+				if(["red","green","blue"].includes(PrimaryColor)) {
+					if(colorAmount <= 255) {
+						result.red = result.blue = result.green = 0;
+						result[cNameToProp(PrimaryColor)] = colorAmount;
+					} else {
+						result.red = result.blue = result.green = colorAmount-255;
+						result[cNameToProp(PrimaryColor)] = 255;
+					}
+				} else {
+					if(colorAmount <= 255) {
+						result.red = result.blue = result.green = colorAmount;
+						result[cNameToProp(PrimaryColor)] = 0;
+					} else {
+						result.red = result.blue = result.green = 255;
+						result[cNameToProp(PrimaryColor)] = colorAmount-255;
+					}
+				}
+				*/
+				
 			} else {
 				result.red = 0;
 				result.green = 0;
@@ -448,7 +416,7 @@ PixelColorFromRate = function(rate) {
 			}
 			
 			break;
-		case ColorType.ReverseSingleColor:
+		case ColorType.ReverseColor:
 			if(rate > 0) {
 				
 				let colorAmount = 510*(1-rate);
@@ -481,15 +449,7 @@ PixelColorFromRate = function(rate) {
 			break;
 		case ColorType.ColorCycle:
 			if(rate > 0) {
-				//result = GetColorCylceFromRate(rate)
-				
 				let colorRates = RainbowGetColorRates(rate, ColorCycleCycleCount);
-				//result.red = colorRates[0]*255;
-				//result.green = colorRates[1]*255;
-				//result.blue = colorRates[2]*255;
-				// result[ColorCycleOrdering[0]] = colorRates[0]*255;
-				// result[ColorCycleOrdering[1]] = colorRates[1]*255;
-				// result[ColorCycleOrdering[2]] = colorRates[2]*255;
 				result[ColorCycleOrdering[0]] = (colorRates[0]*(ColorCycleHigh - ColorCycleLow)) + ColorCycleLow;
 				result[ColorCycleOrdering[1]] = (colorRates[1]*(ColorCycleHigh - ColorCycleLow)) + ColorCycleLow;
 				result[ColorCycleOrdering[2]] = (colorRates[2]*(ColorCycleHigh - ColorCycleLow)) + ColorCycleLow;
@@ -524,21 +484,6 @@ cNameToProp = function(colorName) {
 			result = "blue";
 			break;
 	}
-	return result;
-	
-}
-
-
-GetColorCylceFromRate = function(rate) {
-	
-	let colorRates = RainbowGetColorRates(rate, 1);
-	
-	let result = {red: 0, green: 0, blue: 0, alpha: 255}
-	result.red = colorRates[0]*255;
-	result.green = colorRates[1]*255;
-	result.blue = colorRates[2]*255;
-
-	
 	return result;
 }
 
@@ -582,89 +527,30 @@ RainbowGetColorRates = function(rate, cycleCount) {
 
 
 CenterOnPoint = function(pixelX, pixelY) {
-	
 	let newCenterX = PixelToPlaneX(pixelX);
 	let newCenterY = PixelToPlaneY(pixelY);
-	
-	//let newLeftEdge = newCenterX - (PlaneWidth/2)
-	//let newTopEdge = newCenterY + (PlaneHeight/2)
-	
-	/*
-	console.log("<CenterOnPoint> centerX: " + newCenterX);
-	console.log("<CenterOnPoint> centerY: " + newCenterY);
-	
-	console.log("<CenterOnPoint> newLeftEdge: " + newLeftEdge);
-	console.log("<CenterOnPoint> newTopEdge: " + newTopEdge);
-	*/
-	//PlaneHistory.push({LeftEdge: LeftEdge, TopEdge: TopEdge, PlaneWidth: PlaneWidth});
 	SetPlaneValues(newCenterX, newCenterY, Scale);
 }
 
 
 ZoomIn = function() {
-	
-	//let centerX = LeftEdge + (PlaneWidth/2);
-	//let centerY = TopEdge - (PlaneHeight/2);
-	
-	//let newWidth = PlaneWidth / ZoomLevel;
-	//let newHeight = PlaneHeight / ZoomLevel;
-	
-	//let newLeftEdge = centerX - (newWidth/2)
-	//let newTopEdge = centerY + (newHeight/2)
-	
 	let newScale = Scale / ZoomLevel;
-	
 	PlaneHistory.push({PlaneX: PlaneX, PlaneY: PlaneY, Scale: Scale});
 	SetPlaneValues(PlaneX, PlaneY, newScale);
 }
 
 
 ZoomOut = function() {
-	
-	//let centerX = LeftEdge + (PlaneWidth/2);
-	//let centerY = TopEdge - (PlaneHeight/2);
-	
-	//let newWidth = PlaneWidth * ZoomLevel;
-	//let newHeight = PlaneHeight * ZoomLevel;
-	
-	//let newLeftEdge = centerX - (newWidth/2)
-	//let newTopEdge = centerY + (newHeight/2)
-	
-	//PlaneHistory.push({LeftEdge: LeftEdge, TopEdge: TopEdge, PlaneWidth: PlaneWidth});
-	//SetPlaneValues(newLeftEdge, newTopEdge, newWidth);
-	
-	
 	let newScale = Scale * ZoomLevel;
-	
 	PlaneHistory.push({PlaneX: PlaneX, PlaneY: PlaneY, Scale: Scale});
 	SetPlaneValues(PlaneX, PlaneY, newScale);
-	
 }
 
 
 ZoomToSelection = function() {
 	
-	
-	/*
-	let newLeftPixel = ZoomSelectionX;
-	if(ZoomSelectionWidth < 0) {
-		newLeftPixel += ZoomSelectionWidth;
-	}
-	
-	let newTopPixel = ZoomSelectionY;
-	if(ZoomSelectionHeight < 0) {
-		newTopPixel += ZoomSelectionHeight;
-	}
-	
-	let newLeftPlane = PixelToPlaneX(newLeftPixel);
-	let newTopPlane = PixelToPlaneY(newTopPixel);
-	
-	let newWidthPlane = Math.abs(ZoomSelectionWidth) * Scale;
-	*/
-	
 	let newPlaneX = 0.0;
 	let newPlaneY = 0.0;
-	
 	
 	if (ZoomSelectionMode == "CORNER") {
 		newPlaneX = PixelToPlaneX(ZoomSelectionX + (ZoomSelectionWidth/2));
@@ -674,34 +560,8 @@ ZoomToSelection = function() {
 		newPlaneY = PixelToPlaneY(ZoomSelectionY);
 	}
 	
-	
 	let ratio = Math.abs(ZoomSelectionWidth) / BoxWidth;
 	let newScale = Scale * ratio;
-	
-	
-	
-	/*
-	console.log("<ZoomToSelection> ZoomSelectionX: " + ZoomSelectionX);
-	console.log("<ZoomToSelection> ZoomSelectionY: " + ZoomSelectionY);
-	console.log("<ZoomToSelection> ZoomSelectionWidth: " + ZoomSelectionWidth);
-	console.log("<ZoomToSelection> ZoomSelectionHeight: " + ZoomSelectionHeight);
-	console.log("<ZoomToSelection> newLeftPixel: " + newLeftPixel);
-	console.log("<ZoomToSelection> newTopPixel: " + newTopPixel);
-	console.log("<ZoomToSelection> newLeftPlane: " + newLeftPlane);
-	console.log("<ZoomToSelection> newTopPlane: " + newTopPlane);
-	console.log("<ZoomToSelection> newWidthPlane: " + newWidthPlane);
-	*/
-	
-	//PlaneHistory.push({LeftEdge: LeftEdge, TopEdge: TopEdge, PlaneWidth: PlaneWidth});
-	//console.log("<ZoomToSelection>Added to Plane History");
-	//console.log(PlaneHistory);
-	
-	/*
-	ZoomSelectionX = 0;
-	ZoomSelectionY = 0;
-	ZoomSelectionWidth = 0;
-	ZoomSelectionHeight = 0;
-	*/
 	
 	PlaneHistory.push({PlaneX: PlaneX, PlaneY: PlaneY, Scale: Scale});
 	SetPlaneValues(newPlaneX, newPlaneY, newScale);
@@ -712,9 +572,6 @@ ZoomOutToHistory = function() {
 	
 	if(PlaneHistory.length > 0) {
 		let newPosition = PlaneHistory.pop();
-		
-		//console.log("<ZoomOutToHistory>Removed from Plane History");
-		//console.log(PlaneHistory);
 		
 		SetPlaneValues(newPosition.PlaneX, newPosition.PlaneY, newPosition.Scale);
 		UpdateCanvas = true;
@@ -745,29 +602,6 @@ SetPlaneValues = function(newPlaneX, newPlaneY, newScale, setUpdatePlane = true,
 	RightEdge = PlaneX + PlaneWidth/2;
 	BottomEdge = PlaneY - PlaneHeight/2;
 	
-	/*
-	lblX.innerText = PlaneX;
-	lblY.innerText = PlaneY;
-	lblLeftEdge.innerText = LeftEdge;
-	lblRightEdge.innerText = RightEdge;
-	lblTopEdge.innerText = TopEdge;
-	lblBottomEdge.innerText = BottomEdge;
-	*/
-	
-	
-	/*
-	LeftEdge = newLeftEdge;
-	TopEdge = newTopEdge;
-	PlaneWidth = newWidth;
-
-	PlaneHeight = PlaneWidth / BoxAspectRatio;
-	RightEdge = LeftEdge + PlaneWidth;
-	BottomEdge = TopEdge - PlaneHeight;
-
-	Scale = PlaneWidth / BoxWidth;
-	Scale = PlaneHeight / BoxHeight;
-	*/
-	
 	if(updateUrl) {
 		StorePlaneInUrl()
 	}
@@ -777,49 +611,7 @@ SetPlaneValues = function(newPlaneX, newPlaneY, newScale, setUpdatePlane = true,
 	}
 }
 
-/*
-function RunAlgorithmInWorker() {
-	
-	
-	//console.log("<RunAlgorithmInWorker> start");
-	
-	let worker = new Worker("worker_setBuilder.js");
-	
-	//console.log("<RunAlgorithmInWorker> posting start message");
-	worker.postMessage({
-		GrowthThreshold: GrowthThreshold, 
-		IterationThreshold: IterationThreshold,
-		BoxWidth: BoxWidth,
-		BoxHeight: BoxHeight,
-		LeftEdge: LeftEdge,
-		TopEdge: TopEdge,
-		PlaneWidth: PlaneWidth
-	});
-	
-	
-	worker.onmessage = function(e) {
-		//console.log("<RunAlgorithmInWorker> message received from worker");
-		//console.log(e.data)
-		
-		if(e.data.Completed) {
-			//console.log('<RunAlgorithmInWorker> ---- Completed: ');
-			LoadPercent = e.data.LoadPercent;
-			Plane = e.data.Plane;
-			UpdateImageData = true;
-			UpdateCanvas = true;
-		} else {
-			LoadPercent = e.data.LoadPercent;
-			//console.log('<RunAlgorithmInWorker> ---- New LoadPercent: ' + LoadPercent);
-			UpdateCanvas = true;
-		}
-	}
-	
-	//console.log("<RunAlgorithmInWorker> End of function");
-}
-*/
-
 function RunAlgorithmInWorkerMultithread() {
-	
 	
 	console.log("<RunAlgorithmInWorkerMultithread> start");
 	console.time("RunAlgorithmInWorkerMultithread");
@@ -901,7 +693,6 @@ function RunAlgorithmInWorkerMultithread() {
 				}
 				
 			} else {
-				
 				//console.log('<RunAlgorithmInWorkerMultithread> ---- New LoadPercent worker' + threadID + ': ' + LoadPercent);
 				//console.log('<RunAlgorithmInWorkerMultithread> ---- New Overall Load Percent: ' + LoadPercent);
 				UpdateCanvas = true;
@@ -1036,11 +827,7 @@ function RunAlgorithm()
 					
 				}//If z > or < thresholdGrowth
 				
-				
-				
-				
 			}//Threshold loop
-			
 			
 		}//Loop Y
 		
@@ -1067,11 +854,6 @@ ReRender = function() {
 	UpdateCanvas = true;
 	StoreSettingsInLocalStorage();
 }
-
-
-
-
-
 
 
 /******************* Conversions **********************/
@@ -1150,11 +932,12 @@ document.onkeyup= function(event){
 
 
 canvas.onmousedown = function(mouse) {
-	console.log("<onmousedown>");
 	IsMouseDown = true;
 	let mouseX = mouse.clientX - canvas.getBoundingClientRect().left;
 	let mouseY = mouse.clientY - canvas.getBoundingClientRect().top;
-
+	
+	if(UpdatePlane || LoadPercent < 1.0) return; //If we're loading, don't accept input
+	
 	if(MouseMode == "CENTER") {
 		
 		CenterOnPoint(mouseX, mouseY)
@@ -1172,11 +955,13 @@ canvas.onmousedown = function(mouse) {
 
 canvas.onmouseup = function(mouse) {
 	IsMouseDown = false;
-	console.log("<onmouseup> ");
-
+	
+	if(UpdatePlane || LoadPercent < 1.0) return; //If we're loading, don't accept input
+	
 	if(MouseMode == "SELECT") {
-		
 		/*
+		//I didn't like the feel of this, so I removed it.
+		//Leaving it here in case I change my mind.
 		if(MouseMode == "SELECT" && mouse.button == 0 && KeyState.shift) {
 			console.log("<onmouseup> Mouse up in SELECT mode with shift key");
 			console.log("<onmouseup> Zooming out");
@@ -1202,15 +987,13 @@ canvas.onmouseup = function(mouse) {
 }
 
 canvas.onmousemove = function(mouse) {
-	console.log("<onmousemove>Start");
+	let mouseX = mouse.clientX - canvas.getBoundingClientRect().left;
+	let mouseY = mouse.clientY - canvas.getBoundingClientRect().top;
 
-	var mouseX = mouse.clientX - canvas.getBoundingClientRect().left;
-	var mouseY = mouse.clientY - canvas.getBoundingClientRect().top;
-
+	if(UpdatePlane || LoadPercent < 1.0) return; //If we're loading, don't accept input
 
 	if(!IsMouseDown) {
 
-	
 		if(AllowBoxResizing && (mouseX > canvas.width-ResizeSelectionWidth && mouseX < canvas.width + ResizeSelectionWidth && mouseY < canvas.height + ResizeSelectionWidth)) {
 
 			if (mouseY > canvas.height-ResizeSelectionWidth && mouseY < canvas.height + ResizeSelectionWidth) {
@@ -1236,23 +1019,12 @@ canvas.onmousemove = function(mouse) {
 			document.body.style.cursor = "default";
 			MouseMode = "";
 		}
-		//console.log("MouseMode Up: " + MouseMode);
-
 
 	} else {
 
 		if(MouseMode == "SELECT") {
-			/*
-			let p = ScreenPositionToGridPosition(mouseX, mouseY);
-			if(p.x != -1) {
-				Plane[p.x][p.y] = CellSetMode;
-				ClearHistory();
-				UpdateCanvas = true;
-			}
-			*/
+			
 		} else if (MouseMode == "ZOOM_SELECT") {
-			//ZoomSelectionWidth = mouseX - ZoomSelectionX;
-			//ZoomSelectionHeight = mouseY - ZoomSelectionY;
 			
 			if((mouseX - ZoomSelectionX) * (mouseY - ZoomSelectionY) > 0) {
 				//Top-left or bottom-right quadrants
@@ -1294,10 +1066,8 @@ canvas.onmousemove = function(mouse) {
 			StoreSettingsInLocalStorage();
 		}
 
-		//console.log("MouseMode Down: " + MouseMode);
 	}
 
-	//console.log("<onmousemove>End");
 }
 
 
@@ -1318,6 +1088,8 @@ canvas.ontouchstart = function(event) {
 	if (event.target == canvas) {
 		event.preventDefault();
 	}
+	
+	if(UpdatePlane || LoadPercent < 1.0) return; //If we're loading, don't accept input
 	
 	let touch = event.touches[0];
 	let touchX = touch.clientX;
@@ -1343,6 +1115,8 @@ canvas.ontouchend = function(event) {
 		event.preventDefault();
 	}
 	
+	if(UpdatePlane || LoadPercent < 1.0) return; //If we're loading, don't accept input
+	
 	var touch = event.touches[0];
 	var mouseEvent = new MouseEvent("mouseup", {
 		button: 0
@@ -1354,6 +1128,8 @@ canvas.ontouchmove = function(event) {
 	if (event.target == canvas) {
 		event.preventDefault();
 	}
+	
+	if(UpdatePlane || LoadPercent < 1.0) return; //If we're loading, don't accept input
 	
 	var touch = event.touches[0];
 	let touchX = touch.clientX;
@@ -1368,15 +1144,6 @@ canvas.ontouchmove = function(event) {
 }
 
 
-/**** Modal stuff ****/
-
-divWelcomeModalBackground.onmouseup = function(mouse) {
-	ToggleHelpModal()
-}
-
-divWelcomeModalBackground.ontouchend = function(event) {
-	ToggleHelpModal()
-}
 
 
 /**** Browser Back Button ****/
@@ -1441,20 +1208,20 @@ StoreSettingsInUrl = function() {
 	
 	let url = new URL(window.location);
 	
-	UpdateSettingInUrl(url, 'GrowthThreshold', GrowthThreshold, DefaultGrowthThreshold);
-	UpdateSettingInUrl(url, 'IterationThreshold', IterationThreshold, DefaultIterationThreshold);
-	UpdateSettingInUrl(url, 'ZPower', ZPower, DefaultZPower);
-	UpdateSettingInUrl(url, 'ColorMode', ColorMode, DefaultColorMode);
-	UpdateSettingInUrl(url, 'PrimaryColor', PrimaryColor, DefaultPrimaryColor);
-	UpdateSettingInUrl(url, 'ColorCycleOrdering', ColorCycleOrdering.join(), DefaultColorCycleOrdering.join());
-	UpdateSettingInUrl(url, 'ColorCycleCycleCount', ColorCycleCycleCount, DefaultColorCycleCycleCount);
+	UpdateSettingInUrl(url, 'gt', GrowthThreshold, DefaultGrowthThreshold);
+	UpdateSettingInUrl(url, 'it', IterationThreshold);
+	UpdateSettingInUrl(url, 'zp', ZPower, DefaultZPower);
+	UpdateSettingInUrl(url, 'cm', ColorMode);
+	UpdateSettingInUrl(url, 'c', PrimaryColor);
+	UpdateSettingInUrl(url, 'cco', ColorCycleOrdering.join(), DefaultColorCycleOrdering.join());
+	UpdateSettingInUrl(url, 'cccc', ColorCycleCycleCount, DefaultColorCycleCycleCount);
 	
 	if(EnableStateInUrl) {
 		window.history.replaceState({}, '', url);
 	}
 }
 
-UpdateSettingInUrl = function(url, key, value, defaultValue) {
+UpdateSettingInUrl = function(url, key, value, defaultValue = "") {
 	if(value != defaultValue) 
 		url.searchParams.set(key, value);
 	else
@@ -1464,9 +1231,10 @@ UpdateSettingInUrl = function(url, key, value, defaultValue) {
 StorePlaneInUrl = function() {
 	
 	let url = new URL(window.location);
-	UpdateSettingInUrl(url, 'PlaneX', PlaneX, DefaultPlaneX);
-	UpdateSettingInUrl(url, 'PlaneY', PlaneY, DefaultPlaneY);
-	UpdateSettingInUrl(url, 'Scale', Scale, (DefaultPlaneWidth / DefaultCanvasWidth));
+	UpdateSettingInUrl(url, 'x', PlaneX, DefaultPlaneX);
+	UpdateSettingInUrl(url, 'y', PlaneY, DefaultPlaneY);
+	UpdateSettingInUrl(url, 'scale', Scale, (DefaultPlaneWidth / DefaultCanvasWidth));
+	UpdateSettingInUrl(url, 'it', IterationThreshold);
 	
 	if(EnableStateInUrl) {
 		window.history.pushState({}, '', url);
@@ -1474,51 +1242,23 @@ StorePlaneInUrl = function() {
 	
 }
 
-/*
-ClearUrlParameters = function() {
-	
-	let url = new URL(window.location);
-	for (const [key, value] of url.searchParams.entries()) {
-		url.searchParams.delete(key);
-	}
-	
-	window.history.pushState({}, '', url);
-}
-*/
 
 RetrieveSettingsFromUrl = function() {
 	
 	let url = new URL(window.location);
 	let searchParams = url.searchParams;
-	if (searchParams.has("GrowthThreshold")) GrowthThreshold = searchParams.get("GrowthThreshold"); else GrowthThreshold = DefaultGrowthThreshold;
-	if (searchParams.has("IterationThreshold")) IterationThreshold = searchParams.get("IterationThreshold"); else IterationThreshold = DefaultIterationThreshold;
-	if (searchParams.has("ZPower")) ZPower = searchParams.get("ZPower"); else ZPower = DefaultZPower;
-	if (searchParams.has("ColorMode")) ColorMode = searchParams.get("ColorMode"); else ColorMode = DefaultColorMode;
-	if (searchParams.has("PrimaryColor")) PrimaryColor = searchParams.get("PrimaryColor"); else PrimaryColor = DefaultPrimaryColor;
-	if (searchParams.has("ColorCycleOrdering")) ColorCycleOrdering = searchParams.get("ColorCycleOrdering").split(','); else ColorCycleOrdering = DefaultColorCycleOrdering;
-	if (searchParams.has("ColorCycleCycleCount")) ColorCycleCycleCount = searchParams.get("ColorCycleCycleCount"); else ColorCycleCycleCount = DefaultColorCycleCycleCount;
-	
+	if (searchParams.has("gt")) GrowthThreshold = searchParams.get("gt"); else GrowthThreshold = DefaultGrowthThreshold;
+	if (searchParams.has("it")) IterationThreshold = searchParams.get("it"); else IterationThreshold = DefaultIterationThreshold;
+	if (searchParams.has("zp")) ZPower = searchParams.get("zp"); else ZPower = DefaultZPower;
+	if (searchParams.has("cm")) ColorMode = searchParams.get("cm"); else ColorMode = DefaultColorMode;
+	if (searchParams.has("c")) PrimaryColor = searchParams.get("c"); else PrimaryColor = DefaultPrimaryColor;
+	if (searchParams.has("cco")) ColorCycleOrdering = searchParams.get("cco").split(','); else ColorCycleOrdering = DefaultColorCycleOrdering;
+	if (searchParams.has("cccc")) ColorCycleCycleCount = searchParams.get("cccc"); else ColorCycleCycleCount = DefaultColorCycleCycleCount;
 	
 	UpdateUiFromSettings();
 	ShowHideColorSections();
-	
 }
 
-RetrievePlaneFromUrl = function() {
-	
-	let newPlaneX = DefaultPlaneX;
-	let newPlaneY = DefaultPlaneY;
-	let newScale = DefaultPlaneWidth / DefaultCanvasWidth;
-	
-	let url = new URL(window.location);
-	let searchParams = url.searchParams;
-	if (searchParams.has("PlaneX")) newPlaneX = searchParams.get("PlaneX");
-	if (searchParams.has("PlaneY")) newPlaneY = searchParams.get("PlaneY");
-	if (searchParams.has("Scale")) newScale = searchParams.get("Scale");
-	
-	return {PlaneX: newPlaneX, PlaneY: newPlaneY, Scale: newScale};
-	
-}
 
 ZoomToPlaneUrl = function() {
 	
@@ -1528,9 +1268,9 @@ ZoomToPlaneUrl = function() {
 	
 	let url = new URL(window.location);
 	let searchParams = url.searchParams;
-	if (searchParams.has("PlaneX")) newPlaneX = parseFloat(searchParams.get("PlaneX"));
-	if (searchParams.has("PlaneY")) newPlaneY = parseFloat(searchParams.get("PlaneY"));
-	if (searchParams.has("Scale")) newScale = parseFloat(searchParams.get("Scale"));
+	if (searchParams.has("x")) newPlaneX = parseFloat(searchParams.get("x"));
+	if (searchParams.has("y")) newPlaneY = parseFloat(searchParams.get("y"));
+	if (searchParams.has("scale")) newScale = parseFloat(searchParams.get("scale"));
 	
 	SetPlaneValues(newPlaneX, newPlaneY, newScale, true, false);
 }
@@ -1609,6 +1349,8 @@ SetPlaneDefaultValues = function() {
 	PlaneHistory = new Array();
 }
 
+/*
+//Deprecated in favor of ResetApplication()
 RestoreDefaultValuesAndRedraw = function() {
 	SetSettingsDefaultValues();
 	SetPlaneDefaultValues();
@@ -1620,30 +1362,27 @@ RestoreDefaultValuesAndRedraw = function() {
 	UpdatePlane = true;
 	UpdateCanvas = true;
 }
+*/
+
+ResetApplication = function() {
+	localStorage.clear();
+	window.location = window.location.pathname;
+}
 
 
 UpdatePositionUi = function() {
 	
-	/*
-	let diff = Math.abs(LeftEdge - RightEdge).toString();
-	
-	let digitsToKeep = 0;
-	while(diff[digitsToKeep] == '0' || diff[digitsToKeep] == '.') {
-		digitsToKeep++;
-	}
-	*/
-	
-	
-	// Left-Right
+	// Left/Right
 	let digitsToKeepLR = GetDigitsToKeep(LeftEdge, RightEdge);
 	let displayLeft = TrimNumberToDigits(LeftEdge, digitsToKeepLR);
 	let displayRight = TrimNumberToDigits(RightEdge, digitsToKeepLR);
 	
-	// Top-Bottom
+	// Top/Bottom
 	let digitsToKeepTB = GetDigitsToKeep(TopEdge, BottomEdge);
 	let displayTop = TrimNumberToDigits(TopEdge, digitsToKeepTB);
 	let displayBottom = TrimNumberToDigits(BottomEdge, digitsToKeepTB);
 	
+	// Display X/Y
 	let digitsToKeepXY = Math.max(digitsToKeepLR, digitsToKeepTB);
 	let displayX = TrimNumberToDigits(PlaneX, digitsToKeepXY);
 	let displayY = TrimNumberToDigits(PlaneY, digitsToKeepXY);
@@ -1666,8 +1405,13 @@ UpdatePositionUi = function() {
 
 
 function GetDigitsToKeep(num1, num2) {
+	//Determine minimum significant figures to keep in order to show a difference
 	
 	let extraDigits = 3;
+	
+	if (num1 = num2 * -1) {
+		return 1 + extraDigits;
+	}
 	
 	let string1 = num1.toString().replace('-', '').replace('.', '');
 	let string2 = num2.toString().replace('-', '').replace('.', '');
@@ -1676,7 +1420,6 @@ function GetDigitsToKeep(num1, num2) {
 		digitsToKeep++;
 	}
 	digitsToKeep += extraDigits;
-	
 	
 	return digitsToKeep;
 }
@@ -1755,18 +1498,12 @@ ShowHideColorSections = function() {
 		divColorCycle.style.display = "none";
 	}
 	
-	
 }
 
 
 ToggleHelpModal = function() {
-	
-	
 	divWelcomeModal.classList.toggle("ModalShow");
-	
 	divWelcomeModalBackground.classList.toggle("ModalBackgroundShow");
-	//divWelcomeModalBackground.style.display = "block";
-	
 }
 
 /****************** ARRAY FUNCTIONS ***********************/
@@ -1811,7 +1548,6 @@ UpdateCanvasSize = function(newWidth, newHeight) {
 	canvas.height = newHeight;
 	
 	UpdateBoxSize(canvas.width-BoxMargin*2, canvas.height-BoxMargin*2)
-	
 	UpdateCanvas = true;
 }
 
@@ -1825,30 +1561,7 @@ UpdateBoxSize = function(newWidth, newHeight) {
 	let newScale = PlaneWidth / BoxWidth;
 	SetPlaneValues(PlaneX, PlaneY, newScale, false, false)
 	
-	/*
-	PlaneHeight = PlaneWidth / BoxAspectRatio;
-	RightEdge = LeftEdge + PlaneWidth;
-	BottomEdge = TopEdge - PlaneHeight;
-
-	Scale = PlaneWidth / BoxWidth;
-	*/
 }
-
-
-
-
-UpdateCellSize = function(newSize) {
-	//CellSize = newSize;
-	//CellWidth = CellSize;
-	//CellHeight = CellSize;
-	//GridWidth = Math.floor(BoxWidth / CellWidth);
-	//GridHeight = Math.floor(BoxHeight / CellHeight);
-	//BoardWidth = GridWidth * CellWidth;
-	//BoardHeight = GridHeight * CellHeight;
-	//Board = CopyArray(Board, GridWidth, GridHeight, 0);
-	//ClearHistory();
-}
-
 
 /****************** INTERVAL ***********************/
 
