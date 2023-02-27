@@ -9,7 +9,7 @@ This application is pure HTML/CSS/Javascript, which means you don't actually nee
 
 ### Firefox
 
-To work around this in Firefox, navigate to *about:config*, search for *security.fileuri.strict_origin_policy* and set it to **false**. Make sure to change it back to **true** when you're done as this does create a security vulnerability.
+To work around this in Firefox, navigate to *about:config*, search for *security.fileuri.strict_origin_policy* and set it to **false**. Make sure to change it back to **true** when you're done.
 
 ### Chrome 
 To work around this in Chrome, launch Chrome from the command line and pass in the parameter --allow-file-access-from-files. For example:
