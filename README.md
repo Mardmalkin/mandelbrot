@@ -1,6 +1,6 @@
 # Mandelbrot Viewer
 
-This is a web application for viewing the Mandelbrot Set. You can find it here: https://mandelbortviewer.com
+This is a web application for viewing the Mandelbrot Set. You can find it here: https://www.mandelbrotviewer.com/
 
 ## Running the App Locally
 
