@@ -224,11 +224,17 @@ divSidebarPin.addEventListener("click", function() {
 		divSidebar.classList.add("sidebarShow");
 		divSidebar.classList.remove("sidebarHidden");
 
+		divSidebarPin.classList.add("pin-tab-sidebarShow");
+		divSidebarPin.classList.remove("pin-tab-sidebarHidden");
+
 		divSidebarPin.classList.add("pin-tab-minus");
 		divSidebarPin.classList.remove("pin-tab-plus");
 	} else {
 		divSidebar.classList.remove("sidebarShow");
 		divSidebar.classList.add("sidebarHidden");
+
+		divSidebarPin.classList.remove("pin-tab-sidebarShow");
+		divSidebarPin.classList.add("pin-tab-sidebarHidden");
 
 		divSidebarPin.classList.remove("pin-tab-minus");
 		divSidebarPin.classList.add("pin-tab-plus");
@@ -1032,10 +1038,13 @@ canvas.onmousemove = function(mouse) {
 			
 			divSidebar.classList.add("sidebarShow");
 			divSidebar.classList.remove("sidebarHidden");
-
+			divSidebarPin.classList.add("pin-tab-sidebarShow");
+			divSidebarPin.classList.remove("pin-tab-sidebarHidden");
 		} else {
 			divSidebar.classList.remove("sidebarShow");
 			divSidebar.classList.add("sidebarHidden");
+			divSidebarPin.classList.remove("pin-tab-sidebarShow");
+			divSidebarPin.classList.add("pin-tab-sidebarHidden");
 		}
 
 	}

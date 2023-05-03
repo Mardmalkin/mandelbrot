@@ -2,7 +2,8 @@
 
 :root {
 	--SidebarWidth: 300px;
-	--SidebarHideWidth: -310px; /* This needs to be 10px more than SidebarWidth */
+	--SidebarHideWidth: -307px; /* This needs to be at least 7px more than SidebarWidth */
+	--SidebarWidthExtra: 307px;
 	
   }
 
@@ -22,7 +23,6 @@ body {
 #canvas {
 	margin: 0px;
 	padding: 0px;
-	/* border: 1px solid black; */
 }
 
 #divSidebar {
@@ -39,8 +39,6 @@ body {
 	
 	padding: 2px;
 	border-left: 5px solid #aaa;
-	/* border-left: 10px solid linear-gradient(to right, red , yellow); */
-
 	
 	transition: right ease-out 0.5s;
 	transition-delay: 0s;
@@ -48,34 +46,20 @@ body {
 
 .sidebarShow {
 	right: 0;
-	/* width: 300px; */
 }
 
 .sidebarHidden {
-
 	right: var(--SidebarHideWidth) !important;
-	/* width: 0px !important;  */
 }
 
-
-/* .trapezoid {
-	background: red;
-	clip-path: polygon(26% 19%, 100% 1%, 100% 100%, 26% 75%);
-  } */
-
 .pin-tab {
-
-	/* border: 3px solid darkgray;
-	border-top-left-radius:    15px;
-	border-bottom-left-radius: 15px;
-	background-color:  lightgray; */
 
 	border: none;
 	background-color:  transparent;
 	
 	/* position: fixed; */
-	position: fixed;
-	z-index: 150;
+	position: absolute;
+	z-index: 170;
 	padding: 0px;
 	
 	top: 0;
@@ -85,16 +69,28 @@ body {
 
 	height: 70px;
 	width: 35px;
-	margin-left: -40px;
+	/* margin-left: -40px; */
 
 	text-align:center;
 	line-height:40px;
 	cursor: pointer;
 
+	transition: right ease-out 0.5s;
+	transition-delay: 0s;
+
 }
 
 .pin-tab:hover {
 	cursor: pointer;
+}
+
+
+.pin-tab-sidebarShow {
+	right: var(--SidebarWidthExtra);
+}
+
+.pin-tab-sidebarHidden {
+	right: 0px;
 }
 
 .pin-tab-plus::after {
@@ -128,18 +124,9 @@ body {
 
 .pin-tab2 {
 
-	/* border: 3px solid darkgray;
-	border-top-left-radius:    15px;
-	border-bottom-left-radius: 15px;
-	background-color:  lightgray; */
-
 	border: none;
 	background-color:  transparent; 
 
-	/* border: 1px solid black;
-	background-color: white; */
-	
-	/* position: fixed; */
 	position: fixed;
 	z-index: 150;
 	padding: 0px;
