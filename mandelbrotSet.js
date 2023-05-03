@@ -2,12 +2,15 @@
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
-var ElementBottomMargin = 5;
-var ElementRightMargin = 1;
+var ElementBottomMargin = 0;
+var ElementRightMargin = 0;
 var divSidebar = document.getElementById("divSidebar");
 
-var DefaultCanvasWidth = window.innerWidth - divSidebar.offsetWidth-ElementRightMargin;
+var SidebarPinned = true;
+var SidebarHoverZoneWidth = 50;
+var DefaultCanvasWidth = window.innerWidth -ElementRightMargin - (SidebarPinned ?  divSidebar.offsetWidth : 0);
 var DefaultCanvasHeight = window.innerHeight-ElementBottomMargin;
+
 
 var CurrentOrientation = window.orientation;
 
@@ -208,11 +211,39 @@ var lblPointStatsEscapeRate = document.getElementById("lblPointStatsEscapeRate")
 var lblPointStatsIterationCount = document.getElementById("lblPointStatsIterationCount");
 var divIterationHistory = document.getElementById("divIterationHistory");
 
+var divSidebarPin = document.getElementById("divSidebarPin");
+var svgSidebarPinTrap = document.getElementById("svgSidebarPinTrap");
+
+
+
+divSidebarPin.addEventListener("click", function() {
+
+	SidebarPinned = !SidebarPinned;
+
+	if(SidebarPinned) {
+		divSidebar.classList.add("sidebarShow");
+		divSidebar.classList.remove("sidebarHidden");
+
+		divSidebarPin.classList.add("pin-tab-minus");
+		divSidebarPin.classList.remove("pin-tab-plus");
+	} else {
+		divSidebar.classList.remove("sidebarShow");
+		divSidebar.classList.add("sidebarHidden");
+
+		divSidebarPin.classList.remove("pin-tab-minus");
+		divSidebarPin.classList.add("pin-tab-plus");
+	}
+
+	HandleResize();
+	ReRender();
+
+});
 
 
 
 HandleResize = function() {
-	DefaultCanvasWidth = window.innerWidth - divSidebar.offsetWidth-ElementRightMargin;
+	//DefaultCanvasWidth = window.innerWidth - divSidebar.offsetWidth-ElementRightMargin;
+	DefaultCanvasWidth = window.innerWidth -ElementRightMargin - (SidebarPinned ?  divSidebar.offsetWidth : 0);
 	DefaultCanvasHeight = window.innerHeight-ElementBottomMargin;
 	UpdateCanvasSize(DefaultCanvasWidth, DefaultCanvasHeight);
 	
@@ -224,6 +255,9 @@ HandleResize = function() {
 
 window.addEventListener('resize', HandleResize);
 window.addEventListener('orientationchange', HandleResize);
+
+
+
 
 /****************** Drawing Stuff ***********************/
 
@@ -850,6 +884,8 @@ function RunAlgorithm()
 */
 
 ReRender = function() {
+	console.log("<mandelbrotSet.js:ReRender>");
+
 	UpdatePlane = true;
 	UpdateCanvas = true;
 	StoreSettingsInLocalStorage();
@@ -989,6 +1025,20 @@ canvas.onmouseup = function(mouse) {
 canvas.onmousemove = function(mouse) {
 	let mouseX = mouse.clientX - canvas.getBoundingClientRect().left;
 	let mouseY = mouse.clientY - canvas.getBoundingClientRect().top;
+
+
+	if(!SidebarPinned && !IsMouseDown) {
+		if(mouseX > canvas.width - SidebarHoverZoneWidth) {
+			
+			divSidebar.classList.add("sidebarShow");
+			divSidebar.classList.remove("sidebarHidden");
+
+		} else {
+			divSidebar.classList.remove("sidebarShow");
+			divSidebar.classList.add("sidebarHidden");
+		}
+
+	}
 
 	if(UpdatePlane || LoadPercent < 1.0) return; //If we're loading, don't accept input
 
