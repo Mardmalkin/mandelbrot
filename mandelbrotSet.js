@@ -246,7 +246,6 @@ divSidebarPin.addEventListener("click", function() {
 });
 
 
-
 HandleResize = function() {
 	//DefaultCanvasWidth = window.innerWidth - divSidebar.offsetWidth-ElementRightMargin;
 	DefaultCanvasWidth = window.innerWidth -ElementRightMargin - (SidebarPinned ?  divSidebar.offsetWidth : 0);
@@ -1698,3 +1697,7 @@ IntervalID = setInterval(IntervalUpdate, IntervalValue);
 PlaneIntervalID = setInterval(PlaneIntervalUpdate, PlaneIntervalValue);
 
 
+//If using a mobile device, automatically hide the sidebar
+if (navigator.userAgent.match(/Mobi/)) {
+	divSidebarPin.click();
+}
